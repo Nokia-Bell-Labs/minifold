@@ -727,15 +727,18 @@ files = [
 
 [[package]]
 name = "mistune"
-version = "2.0.5"
-description = "A sane Markdown parser with useful plugins and renderers"
+version = "3.2.1"
+description = "A sane and fast Markdown parser with useful plugins and renderers"
 optional = false
-python-versions = "*"
-groups = ["docs"]
+python-versions = ">=3.8"
+groups = ["dev", "docs"]
 files = [
-    {file = "mistune-2.0.5-py2.py3-none-any.whl", hash = "sha256:bad7f5d431886fcbaf5f758118ecff70d31f75231b34024a1341120340a65ce8"},
-    {file = "mistune-2.0.5.tar.gz", hash = "sha256:0246113cb2492db875c6be56974a7c893333bf26cd92891c85f63151cee09d34"},
+    {file = "mistune-3.2.1-py3-none-any.whl", hash = "sha256:78cdb0ba5e938053ccf63651b352508d2efa9411dc8810bfb05f2dc5140c0048"},
+    {file = "mistune-3.2.1.tar.gz", hash = "sha256:7c8e5501d38bac1582e067e46c8343f17d57ea1aaa735823f3aba1fd59c88a28"},
 ]
+
+[package.dependencies]
+typing-extensions = {version = "*", markers = "python_version < \"3.11\""}
 
 [[package]]
 name = "oauthlib"
@@ -1202,20 +1205,24 @@ test = ["cython", "filelock", "html5lib", "pytest (>=4.6)"]
 
 [[package]]
 name = "sphinx-mdinclude"
-version = "0.5.3"
+version = "0.6.2"
 description = "Markdown extension for Sphinx"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.8"
 groups = ["docs"]
 files = [
-    {file = "sphinx_mdinclude-0.5.3-py3-none-any.whl", hash = "sha256:02afadf4597aecf8255a702956eff5b8c5cb9658ea995c3d361722d2ed78cca9"},
-    {file = "sphinx_mdinclude-0.5.3.tar.gz", hash = "sha256:2998e3d18b3022c9983d1b72191fe37e25ffccd54165cbe3acb22cceedd91af4"},
+    {file = "sphinx_mdinclude-0.6.2-py3-none-any.whl", hash = "sha256:648e78edb067c0e4bffc22943278d49d54a0714494743592032fa3ad82a86984"},
+    {file = "sphinx_mdinclude-0.6.2.tar.gz", hash = "sha256:447462e82cb8be61404a2204227f920769eb923d2f57608e3325f3bb88286b4c"},
 ]
 
 [package.dependencies]
-docutils = ">=0.16,<1.0"
-mistune = ">=2.0,<3.0"
+docutils = ">=0.19,<1.0"
+mistune = ">=3.0,<4.0"
 pygments = ">=2.8"
+sphinx = ">=6"
+
+[package.extras]
+dev = ["attribution (==1.7.1)", "black (==24.4.2)", "coverage (==7.5.1)", "docutils (==0.20.1) ; python_version < \"3.9\"", "docutils (==0.21.2) ; python_version >= \"3.9\"", "flake8 (==7.0.0)", "flit (==3.9.0)", "mistune (==3.0.2)", "mypy (==1.10.0)", "sphinx (==7.1.2) ; python_version < \"3.9\"", "sphinx (==7.3.7) ; python_version >= \"3.9\"", "ufmt (==2.5.1)", "usort (==1.0.8.post1)"]
 
 [[package]]
 name = "sphinxcontrib-applehelp"
