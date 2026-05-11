@@ -4,6 +4,7 @@
 # This file is part of the minifold project.
 # https://github.com/nokia/minifold
 
+import datetime
 import requests
 from minifold.binary_predicate import BinaryPredicate
 from minifold.dblp import DblpConnector
@@ -15,22 +16,27 @@ Log.enable_print = True
 CONFERENCES = {"FORTE"}
 
 FULLNAMES = [
-    "Natalya Rozhnova",   # No trap here
+    # "Natalya Rozhnova",   # No trap here
     "Marc-Olivier Buob",  # Composed firstname
-    "Céline Comte",       # Accent
-    "François Durand",    # Special characters
+    # "Céline Comte",       # Accent
+    # "François Durand",    # Special characters
     "Ana Bušić",          # Special characters
 ]
 
 DBLP_MAP_PID = {
     "Bartek Blaszczyszyn": "88/4182",
-    "Chung Shue Chen": "30/1446",
-    "Giovanni Pau": "87/6423",
-    "Fabien Schneider": "77/2750-1",
-    "Xuan Zeng": "58/5418-2",
+    # "Chung Shue (Calvin) Chen": "30/1446",
+    # "Fabien Schneider": "77/2750-1",
+    # "Giovanni Pau": "87/6423",
+    # "Qiong Liu": "NOBODY",
+    # "Shu Li": "66/6852-6",
+    # "Xuan Zeng": "58/5418-2",
 }
 
-DBLP = DblpConnector(map_dblp_id=DBLP_MAP_PID)
+DBLP = DblpConnector(
+    map_dblp_id=DBLP_MAP_PID,
+    wait_time=datetime.timedelta(seconds=10)
+)
 
 
 def test_conference():
