@@ -18,12 +18,12 @@ testpaths = [
 
 [tool.poetry.dependencies]
 beautifulsoup4 = "*"
-python = ">=3.9"
+python = ">=3.10"
 pycountry = "*"
 pymongo = "*"
 ldap3 = "*"
 lxml = ">=5.3.1"
-requests = "*"
+requests = ">=2.33.0"
 requests-cache = "*"
 tweepy = ">=4.15.0"
 urllib3 = "*"
@@ -33,7 +33,7 @@ xmltodict = "*"
 optional = true
 
 [tool.poetry.group.test.dependencies]
-pytest = ">=7.2.1"
+pytest = ">=9.0.3"
 pytest-runner = "*"
 
 [tool.poetry.group.dev]
@@ -43,7 +43,6 @@ optional = true
 pip = "*"
 bump2version = "*"
 flake8 = "*"
-tox = "*"
 coverage = "*"
 
 [tool.poetry.group.docs]
