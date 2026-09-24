@@ -77,7 +77,9 @@ import datetime
 import json
 import operator
 import time
+from json import JSONDecodeError
 from pprint import pformat
+from xml.parsers.expat import ExpatError
 
 from .binary_predicate import BinaryPredicate
 from .connector import Connector
@@ -472,6 +474,7 @@ class DblpConnector(Connector):
             format = self.format
             object = ""
             url_options = list()
+
             if query.object == "publication":
                 object = "search/publ"
             elif query.object == "researcher":
@@ -490,35 +493,54 @@ class DblpConnector(Connector):
                 else:
                     url_options.append(dblp_name)
 
+            # Requirements imposed to traverse the Anubis firewall enabled by DBLP
+            # It only applies for non-PID queries.
+            # Ack: marcel.r.ackermann@dagstuhl.de
+            # All incoming API requests **must** now contain a "redundant" query
+            # parameter 'app=<app-name>_<version>' in order to identify your calling
+            # application. E.g., your request URLs would look like this:
+            # https://dblp.org/pid/37/885.xml?app=MyTool_0.1
+            from .__init__ import __version__
+            anubis_option = f"app=minifold_{__version__}"
+
+
             if object == "pid":
-                q_dblp = "%(server)s/%(object)s/%(pid)s.%(format)s" % {
-                    "server": self.api_url,
-                    "object": object,
-                    "pid": pid,
-                    "format": format,
-                }
+                page = f"pid/{pid}.{format}"
             else:
                 # WHERE
                 if query.filters:
                     search = {
                         "prefix": self.get_dblp_name(query.object),
-                        "suffix": ""
+                        "suffix": ""  # Updated in place by self.binary_predicate_to_dblp
                     }
                     self.binary_predicate_to_dblp(query.filters, search)
-                    url_options.append("%s%s" % (search["prefix"], search["suffix"]))
+                    url_options.append("".join([search["prefix"], search["suffix"]]))
 
                 # OFFSET and LIMIT
-                url_options.append("h=%s" % query.limit if query.limit is not None else "h=9999")
+                url_options.append(
+                    f"h={query.limit}" if query.limit is not None
+                    else "h=9999"
+                )
                 if query.offset:
-                    url_options.append("f=%s" % query.offset)
+                    url_options.append(f"f={query.offset}")
 
                 # Format of the result.
-                url_options.append("format=%s" % format)
-                q_dblp = "%(server)s/%(object)s/api?q=%(query)s" % {
-                    "server": self.api_url,
-                    "object": object,
-                    "query": "&".join(url_options)
-                }
+                url_options.append(f"format={format}")
+                url_options.append(anubis_option)
+                page = f"{object}/api?q="
+
+                # This will result to queries like:
+                # self.api_url                   | object   | url_options
+                # https://dblp.dagstuhl.de/search/publ/api?q=marc-olivier-buob$&h=9999&format=json&app=minifold_0.10.3
+
+            q_dblp = f"{self.api_url}/{page}"
+            if url_options:
+                Log.debug(f"1) {page=} {q_dblp=} {url_options=}")
+                if not q_dblp.endswith("="):  # e.g., PID queries
+                    q_dblp += "&"
+                Log.debug(f"2) {q_dblp=} {url_options=}")
+                q_dblp += "&".join(url_options)
+                Log.debug(f"3) {q_dblp=}")
 
             Log.info("--> DBLP: %s" % q_dblp)
             wait_time = max(
@@ -536,12 +558,20 @@ class DblpConnector(Connector):
             if reply.status_code == 200:
                 data = reply.content.decode("utf-8")
                 if format == "json":
-                    result = json.loads(data)
+                    try:
+                        result = json.loads(data)
+                    except JSONDecodeError as e:
+                        Log.error(f"Invalid JSON data:\n{data}")
+                        raise e
                     entries = self.extract_entries(query, result)
                 elif format == "xml":
                     data = data.replace("<i>", "")
                     data = data.replace("</i>", "")
-                    result = xmltodict.parse(data, dict_constructor=dict)
+                    try:
+                        result = xmltodict.parse(data, dict_constructor=dict)
+                    except ExpatError as e:
+                        Log.error(f"Can't parse XML result:\n{data}")
+                        raise e
                     # N.B. There are two other keys of interests
                     # - "co" : coauthors
                     # - "person" : information about the researcher
@@ -586,9 +616,9 @@ class DblpConnector(Connector):
 
                     entries = [xml_to_entry(d) for d in result["dblpperson"]["r"]]
                 else:
-                    raise RuntimeError("Format not implemented: %s" % self.format)
+                    raise RuntimeError(f"Format not implemented: {self.format}")
             else:
-                raise RuntimeError("Cannot get reply from %s" % self.api_url)
+                raise RuntimeError(f"Cannot get reply {q_dblp}: {reply.status_code=}")
 
         self.last_query_time = datetime.datetime.now()
         return self.answer(query, self.reshape_entries(query, entries))
